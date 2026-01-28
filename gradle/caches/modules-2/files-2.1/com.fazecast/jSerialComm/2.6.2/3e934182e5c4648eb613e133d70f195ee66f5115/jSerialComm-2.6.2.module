@@ -1,0 +1,101 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.fazecast",
+    "module": "jSerialComm",
+    "version": "2.6.2",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "6.2",
+      "buildId": "mxsvvmlk3bdxbjvr3zoqeppibe"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 6,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "jSerialComm-2.6.2.jar",
+          "url": "jSerialComm-2.6.2.jar",
+          "size": 469932,
+          "sha512": "dbf4d2d096e362ca97bc5307357c87919c11b179799897d924db5723a37a80ff855d564fbea2da07f0ad977f25bc98289ebe8f9925cfb9cf2b8d0ffcda201d5e",
+          "sha256": "572caaf308b41635ad8087f4a80cc1dfb8a5b925a27234f0c13cad225c77e19c",
+          "sha1": "f5f001dc596a3b30d9c3e39cec393f1a1268f399",
+          "md5": "0c785ec775c91b2ef0c7d0660d4fc81e"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 6,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "jSerialComm-2.6.2.jar",
+          "url": "jSerialComm-2.6.2.jar",
+          "size": 469932,
+          "sha512": "dbf4d2d096e362ca97bc5307357c87919c11b179799897d924db5723a37a80ff855d564fbea2da07f0ad977f25bc98289ebe8f9925cfb9cf2b8d0ffcda201d5e",
+          "sha256": "572caaf308b41635ad8087f4a80cc1dfb8a5b925a27234f0c13cad225c77e19c",
+          "sha1": "f5f001dc596a3b30d9c3e39cec393f1a1268f399",
+          "md5": "0c785ec775c91b2ef0c7d0660d4fc81e"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "jSerialComm-2.6.2-javadoc.jar",
+          "url": "jSerialComm-2.6.2-javadoc.jar",
+          "size": 416180,
+          "sha512": "98fc3aa623393575c99240f96913a075e11b0a89dc7a636790dda30b9080e8f2207a9858862679c69fc6a980a94723cb9592ee7af922422451a0b0b50b29c3e4",
+          "sha256": "a73b6df54c3cfe4bb5fe495d9563c8876041b93a41421cb48a346b3112afaa71",
+          "sha1": "16b50ee8ab7b1bfb283f554f5af06ecc0fb527c4",
+          "md5": "f3940f71d7f33a335fb9fc4000a7f6b0"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "jSerialComm-2.6.2-sources.jar",
+          "url": "jSerialComm-2.6.2-sources.jar",
+          "size": 472437,
+          "sha512": "d88050a85a8ed8fccdaf472534d2e017f36201c3069daaf769df2c7d556ae817d7f97ad4ffa44a259fe411f6dc0f2e559e7f1a058581e69deffe018ed0ba4b6b",
+          "sha256": "2cb6da629fdf5162917c973566e99d933ffa55b659732d314c9f4c20adcde40e",
+          "sha1": "295af22506b39fbee763ea333b209440a067be8f",
+          "md5": "ab83bd58cd216f8f0257caf683c8fee3"
+        }
+      ]
+    }
+  ]
+}
