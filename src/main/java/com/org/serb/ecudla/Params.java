@@ -731,11 +731,20 @@ public class Params {
 
 
     public void extractDLAPack2(byte[] buffer) {
-        int crcValue = CRC_Calculator.crcCalByByte(buffer, buffer.length - 4);
+        // Packet is 127 bytes, same frame the working 4.5.0 reader stored.
+        // CRC is calculated over the data bytes, not including F1 1F F2 2F
+        // The UDP output shows CRC bytes at buffer[123] and buffer[124] (0x40 0x33)
+        // This means the CRC is part of the 126 data bytes.
+        // The CRC_Calculator.crcCalByByte(buffer, buffer.length - 4) was calculating CRC over 126 bytes (130 - 4 for F1 1F F2 2F)
+        // This seems correct for the data part.
 
+        int crcValue = CRC_Calculator.crcCalByByte(buffer, buffer.length - 4); // Calculate CRC over 126 data bytes
 
         // Read CRC from bytes 124-125 (check which byte order: big-endian or little-endian)
         // Try little-endian first (most common):
+        // If buffer is 130 bytes, and CRC is at 123, 124, then it's within the 126 data bytes.
+        // The indices would be relative to the start of the 126 data bytes.
+        // If the entire 130-byte packet is passed, then buffer[123] and buffer[124] are correct indices.
         int receivedCRC = ((buffer[123] & 0xFF) << 8) | (buffer[124] & 0xFF);
 
         //System.out.printf("Computed CRC: 0x%04X%n", crcValue);
@@ -851,15 +860,9 @@ public class Params {
                 break;
             default:
                 state = "Cold State";
-
         }
-
         return state;
     }
-
-
-
-
     void extractDLAviaArduino(byte[] buffer) {
         seconds = (buffer[2] << 8 & 0xff00) | (buffer[1] & 0x00ff);
         RPM = (buffer[4] << 8 & 0xff00) | (buffer[3] & 0x00ff);

@@ -1,0 +1,367 @@
+.theme-night {
+    -ecu-bg: #0c121b;
+    -ecu-surface: #151d2b;
+    -ecu-surface-2: #1e2940;
+    -ecu-line: #2c3b52;
+    -ecu-text: #e8eef7;
+    -ecu-muted: #8ea0b8;
+    -ecu-accent: #4cc9f0;
+    -ecu-field: #0e1622;
+    -ecu-ok: #3ddc97;
+    -ecu-danger: #ff5d73;
+    -fx-base: #1a2333;
+    -fx-background: #0c121b;
+    -fx-control-inner-background: #121a28;
+    -fx-accent: #4cc9f0;
+    -fx-focus-color: #4cc9f0;
+    -fx-faint-focus-color: #4cc9f033;
+}
+
+.theme-day {
+    -ecu-bg: #e7edf3;
+    -ecu-surface: #ffffff;
+    -ecu-surface-2: #f4f7fb;
+    -ecu-line: #d5dee8;
+    -ecu-text: #1c2430;
+    -ecu-muted: #5c6b7e;
+    -ecu-accent: #0b6bcb;
+    -ecu-field: #f4f7fb;
+    -ecu-ok: #067647;
+    -ecu-danger: #b42318;
+    -fx-base: #e6ebf1;
+    -fx-background: #e7edf3;
+    -fx-control-inner-background: #ffffff;
+    -fx-accent: #0b6bcb;
+    -fx-focus-color: #0b6bcb;
+    -fx-faint-focus-color: #0b6bcb22;
+}
+
+.theme-amber {
+    -ecu-bg: #140e07;
+    -ecu-surface: #2a1d0c;
+    -ecu-surface-2: #3a2912;
+    -ecu-line: #5c4320;
+    -ecu-text: #ffe0a8;
+    -ecu-muted: #c9a36a;
+    -ecu-accent: #ffb000;
+    -ecu-field: #1a1208;
+    -ecu-ok: #e7c36a;
+    -ecu-danger: #ff7a45;
+    -fx-base: #3a2a12;
+    -fx-background: #140e07;
+    -fx-control-inner-background: #24180b;
+    -fx-accent: #ffb000;
+    -fx-focus-color: #ffb000;
+    -fx-faint-focus-color: #ffb00033;
+}
+
+.theme-night, .theme-day, .theme-amber {
+    -fx-font-family: "Segoe UI", "SansSerif";
+    -fx-background-color: -ecu-bg;
+}
+
+.label {
+    -fx-text-fill: -ecu-text;
+}
+
+.top-bar {
+    -fx-background-color: -ecu-surface;
+    -fx-border-color: transparent transparent -ecu-line transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 16 10 16;
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.logo-badge {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-padding: 4;
+}
+
+.brand-title {
+    -fx-text-fill: -ecu-text;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.brand-sub {
+    -fx-text-fill: -ecu-muted;
+    -fx-font-size: 11px;
+}
+
+.theme-label {
+    -fx-text-fill: -ecu-muted;
+    -fx-font-size: 11px;
+}
+
+.dashboard-scroll {
+    -fx-background-color: transparent;
+    -fx-background: -ecu-bg;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.dashboard-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.board {
+    -fx-background-color: transparent;
+    -fx-padding: 14;
+}
+
+.card {
+    -fx-background-color: -ecu-surface;
+    -fx-background-radius: 14;
+    -fx-border-color: -ecu-line;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-padding: 12 14 14 14;
+    -fx-spacing: 10;
+}
+
+.section-title {
+    -fx-text-fill: -ecu-muted;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.metric-tile {
+    -fx-background-color: -ecu-field;
+    -fx-background-radius: 10;
+    -fx-border-color: -ecu-line;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 8 12 10 12;
+    -fx-spacing: 2;
+}
+
+.metric-caption {
+    -fx-text-fill: -ecu-muted;
+    -fx-font-size: 10px;
+}
+
+.metric-value {
+    -fx-text-fill: -ecu-accent;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Consolas", "Segoe UI";
+}
+
+.toolbar-button {
+    -fx-background-color: -ecu-surface-2;
+    -fx-text-fill: -ecu-text;
+    -fx-background-radius: 8;
+    -fx-border-color: -ecu-line;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 6 12 6 12;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+}
+
+.toolbar-button:hover {
+    -fx-border-color: -ecu-accent;
+}
+
+.toolbar-button:pressed {
+    -fx-background-color: -ecu-accent;
+    -fx-text-fill: -ecu-bg;
+}
+
+.status-chip {
+    -fx-background-radius: 999;
+    -fx-padding: 4 12 4 12;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.status-chip.offline {
+    -fx-background-color: rgba(255, 93, 115, 0.16);
+    -fx-text-fill: -ecu-danger;
+}
+
+.status-chip.online {
+    -fx-background-color: rgba(61, 220, 151, 0.16);
+    -fx-text-fill: -ecu-ok;
+}
+
+.combo-box,
+.link-field {
+    -fx-background-color: -ecu-surface-2;
+    -fx-background-radius: 8;
+    -fx-border-color: -ecu-line;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-pref-height: 32;
+    -fx-text-fill: -ecu-text;
+    -fx-prompt-text-fill: -ecu-muted;
+}
+
+.combo-box > .list-cell {
+    -fx-text-fill: -ecu-text;
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup > .list-view {
+    -fx-background-color: -ecu-surface;
+    -fx-control-inner-background: -ecu-surface;
+}
+
+.combo-box-popup .list-cell {
+    -fx-text-fill: -ecu-text;
+    -fx-background-color: -ecu-surface;
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: -ecu-surface-2;
+}
+
+.data-row {
+    -fx-background-color: -ecu-field;
+    -fx-background-radius: 8;
+    -fx-padding: 8 10 8 10;
+    -fx-border-color: -ecu-line;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-spacing: 8;
+}
+
+.data-k {
+    -fx-text-fill: -ecu-muted;
+    -fx-font-size: 11px;
+}
+
+.data-v {
+    -fx-text-fill: -ecu-text;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Consolas", "Segoe UI";
+}
+
+.data-row.alert {
+    -fx-background-color: rgba(255, 93, 115, 0.14);
+    -fx-border-color: -ecu-danger;
+}
+
+.throttle-readout {
+    -fx-text-fill: -ecu-accent;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Consolas", "Segoe UI";
+    -fx-min-width: 90;
+    -fx-alignment: center;
+}
+
+.step-button {
+    -fx-background-color: -ecu-surface-2;
+    -fx-text-fill: -ecu-text;
+    -fx-background-radius: 8;
+    -fx-border-color: -ecu-line;
+    -fx-border-radius: 8;
+    -fx-min-width: 36;
+    -fx-pref-height: 32;
+    -fx-cursor: hand;
+    -fx-font-size: 16px;
+}
+
+.slider .track {
+    -fx-background-color: -ecu-line;
+    -fx-background-radius: 4;
+    -fx-pref-height: 6;
+}
+
+.slider .thumb {
+    -fx-background-color: -ecu-accent;
+    -fx-background-radius: 9;
+    -fx-pref-width: 16;
+    -fx-pref-height: 16;
+}
+
+.cmd {
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-pref-height: 36;
+    -fx-max-width: infinity;
+    -fx-cursor: hand;
+}
+
+.cmd-idle {
+    -fx-background-color: #3a4558;
+}
+
+.cmd-go {
+    -fx-background-color: #1f7a4d;
+}
+
+.cmd-stop {
+    -fx-background-color: #b42318;
+}
+
+.cmd:hover {
+    -fx-opacity: 0.9;
+}
+
+.about-copy {
+    -fx-text-fill: -ecu-text;
+    -fx-font-size: 12px;
+    -fx-text-alignment: center;
+}
+
+.dialog-pane,
+.confirm-pane {
+    -fx-background-color: -ecu-surface;
+    -fx-border-color: -ecu-line;
+    -fx-background-radius: 12;
+}
+
+.dialog-pane .label,
+.confirm-pane .label {
+    -fx-text-fill: -ecu-text;
+}
+
+.dialog-pane .header-panel,
+.confirm-pane .header-panel {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.confirm-pane > .button-bar > .container {
+    -fx-background-color: transparent;
+    -fx-padding: 8 4 4 4;
+}
+
+.confirm-title {
+    -fx-text-fill: -ecu-text;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.confirm-body {
+    -fx-text-fill: -ecu-muted;
+    -fx-font-size: 13px;
+}
+
+.dialog-pane .button.cmd,
+.confirm-pane .button.cmd {
+    -fx-min-width: 112;
+    -fx-max-width: 160;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+    -fx-background-radius: 8;
+}
+
+.dialog-pane .button.toolbar-button,
+.confirm-pane .button.toolbar-button {
+    -fx-min-width: 96;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+}
+
+.button {
+    -fx-background-radius: 8;
+}
