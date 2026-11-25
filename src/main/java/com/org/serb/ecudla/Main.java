@@ -34,6 +34,14 @@ public class Main extends Application {
     }
 
     private static final String THEME_PREF = "ui.theme";
+    private static final String UDP_MASK = "___.___.___.___:_____";
+    private static final int[][] UDP_SLOTS = {
+            {0, 1, 2},
+            {4, 5, 6},
+            {8, 9, 10},
+            {12, 13, 14},
+            {16, 17, 18, 19, 20}
+    };
 
     BorderPane borderPane;
     Button btnPlane;
@@ -140,10 +148,13 @@ public class Main extends Application {
         portBox = new ComboBox<>();
         portBox.setPrefWidth(110);
         portBox.setOnShowing(event -> refreshPorts());
-        udpField = new TextField("192.168.1.2:9100");
-        udpField.setPromptText("IP:Port");
-        udpField.setPrefWidth(170);
-        udpField.getStyleClass().add("link-field");
+        udpField = new TextField();
+        udpField.setPrefWidth(206);
+        udpField.getStyleClass().addAll("link-field", "link-mask");
+        udpField.setTextFormatter(new TextFormatter<>(this::maskUdpChange));
+        udpField.textProperty().addListener((obs, old, value) -> markUdpField(value));
+        udpField.setText("192.168.1.2:9100");
+        markUdpField(udpField.getText());
         linkTypeBox.setOnAction(event -> showLinkFields());
         refreshPorts();
         showLinkFields();
@@ -660,6 +671,238 @@ public class Main extends Application {
         return new Image(file.toURI().toURL().toString());
     }
 
+    private TextFormatter.Change maskUdpChange(TextFormatter.Change change) {
+        String current = change.getControlText();
+        if (current == null || current.length() != UDP_MASK.length()) {
+            current = UDP_MASK;
+        }
+        String inserted = change.getText() == null ? "" : change.getText();
+        int start = change.getRangeStart();
+        int end = change.getRangeEnd();
+        String[] groups = readUdpGroups(current);
+        int caret;
+        if (inserted.isEmpty()) {
+            caret = deleteUdpRange(groups, start, end);
+        } else {
+            if (end > start) {
+                deleteUdpRange(groups, start, end);
+            }
+            caret = Math.max(0, Math.min(start, UDP_MASK.length()));
+            for (int i = 0; i < inserted.length(); i++) {
+                caret = typeUdpChar(groups, caret, inserted.charAt(i));
+            }
+        }
+        String rendered = writeUdpMask(groups);
+        int oldLength = change.getControlText() == null ? 0 : change.getControlText().length();
+        change.setRange(0, oldLength);
+        change.setText(rendered);
+        int bounded = Math.max(0, Math.min(caret, rendered.length()));
+        change.setCaretPosition(bounded);
+        change.setAnchor(bounded);
+        return change;
+    }
+
+    private int typeUdpChar(String[] groups, int caret, char ch) {
+        int group = udpGroupForCaret(caret);
+        if (ch == '.' || ch == ':') {
+            if (group >= 4) {
+                return udpCaret(4, groups[4].length());
+            }
+            if (groups[group].isEmpty()) {
+                return udpCaret(group, 0);
+            }
+            if (ch == ':' && group < 3) {
+                return caret;
+            }
+            return udpCaret(group + 1, 0);
+        }
+        if (ch < '0' || ch > '9') {
+            return caret;
+        }
+        return typeUdpDigit(groups, group, ch, udpIndexInGroup(group, caret));
+    }
+
+    private int typeUdpDigit(String[] groups, int group, char ch, int index) {
+        int maxLen = group < 4 ? 3 : 5;
+        int maxVal = group < 4 ? 255 : 65535;
+        String g = groups[group];
+        if (index > g.length()) {
+            index = g.length();
+        }
+        if (index >= maxLen) {
+            if (group >= 4) {
+                return udpCaret(4, g.length());
+            }
+            return typeUdpDigit(groups, group + 1, ch, 0);
+        }
+        String trial = g.substring(0, index) + ch + g.substring(index);
+        int trialValue;
+        try {
+            trialValue = Integer.parseInt(trial);
+        } catch (NumberFormatException ex) {
+            return udpCaret(group, index);
+        }
+        if (trial.length() > maxLen || trialValue > maxVal) {
+            if (group < 4 && index == g.length() && !g.isEmpty()) {
+                return typeUdpDigit(groups, group + 1, ch, 0);
+            }
+            return udpCaret(group, index);
+        }
+        groups[group] = trial;
+        int placed = index + 1;
+        if (group < 4 && placed >= maxLen) {
+            return UDP_SLOTS[group + 1][0];
+        }
+        return udpCaret(group, placed);
+    }
+
+    private int deleteUdpRange(String[] groups, int start, int end) {
+        if (end <= start) {
+            return Math.max(0, start);
+        }
+        int caret = start;
+        boolean removed = false;
+        for (int pos = end - 1; pos >= start; pos--) {
+            int[] loc = locateUdpSlot(pos);
+            if (loc == null || loc[1] >= groups[loc[0]].length()) {
+                continue;
+            }
+            int g = loc[0];
+            int index = loc[1];
+            groups[g] = groups[g].substring(0, index) + groups[g].substring(index + 1);
+            caret = UDP_SLOTS[g][index];
+            removed = true;
+            if (end - start == 1) {
+                return caret;
+            }
+        }
+        if (removed) {
+            return caret;
+        }
+        for (int pos = start; pos >= 0; pos--) {
+            int[] loc = locateUdpSlot(pos);
+            if (loc != null && loc[1] < groups[loc[0]].length()) {
+                int g = loc[0];
+                int index = loc[1];
+                groups[g] = groups[g].substring(0, index) + groups[g].substring(index + 1);
+                return UDP_SLOTS[g][index];
+            }
+        }
+        return 0;
+    }
+
+    private String[] readUdpGroups(String text) {
+        String[] groups = {"", "", "", "", ""};
+        if (text == null || text.length() != UDP_MASK.length()) {
+            return groups;
+        }
+        for (int g = 0; g < UDP_SLOTS.length; g++) {
+            StringBuilder digits = new StringBuilder();
+            for (int slot : UDP_SLOTS[g]) {
+                char ch = text.charAt(slot);
+                if (ch < '0' || ch > '9') {
+                    break;
+                }
+                digits.append(ch);
+            }
+            groups[g] = digits.toString();
+        }
+        return groups;
+    }
+
+    private String writeUdpMask(String[] groups) {
+        char[] chars = UDP_MASK.toCharArray();
+        for (int g = 0; g < UDP_SLOTS.length; g++) {
+            String digits = groups[g] == null ? "" : groups[g];
+            for (int i = 0; i < digits.length() && i < UDP_SLOTS[g].length; i++) {
+                chars[UDP_SLOTS[g][i]] = digits.charAt(i);
+            }
+        }
+        return new String(chars);
+    }
+
+    private int udpGroupForCaret(int caret) {
+        if (caret >= UDP_MASK.length()) {
+            return 4;
+        }
+        for (int g = 0; g < UDP_SLOTS.length; g++) {
+            int first = UDP_SLOTS[g][0];
+            int last = UDP_SLOTS[g][UDP_SLOTS[g].length - 1];
+            if (caret >= first && caret <= last) {
+                return g;
+            }
+            if (g > 0 && caret == first - 1) {
+                return g;
+            }
+        }
+        return 0;
+    }
+
+    private int udpIndexInGroup(int group, int caret) {
+        int[] slots = UDP_SLOTS[group];
+        for (int i = 0; i < slots.length; i++) {
+            if (caret <= slots[i]) {
+                return i;
+            }
+        }
+        return slots.length;
+    }
+
+    private int udpCaret(int group, int index) {
+        int[] slots = UDP_SLOTS[group];
+        if (index >= slots.length) {
+            return group < 4 ? UDP_SLOTS[group + 1][0] : UDP_MASK.length();
+        }
+        return slots[Math.max(0, index)];
+    }
+
+    private int[] locateUdpSlot(int pos) {
+        for (int g = 0; g < UDP_SLOTS.length; g++) {
+            for (int i = 0; i < UDP_SLOTS[g].length; i++) {
+                if (UDP_SLOTS[g][i] == pos) {
+                    return new int[]{g, i};
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isCompleteUdpMask(String text) {
+        String[] groups = readUdpGroups(text);
+        for (int g = 0; g < groups.length; g++) {
+            if (groups[g].isEmpty()) {
+                return false;
+            }
+            int value = Integer.parseInt(groups[g]);
+            int max = g < 4 ? 255 : 65535;
+            if (value > max) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String udpAddressText(String masked) {
+        if (!isCompleteUdpMask(masked)) {
+            return "";
+        }
+        String[] groups = readUdpGroups(masked);
+        return Integer.parseInt(groups[0]) + "."
+                + Integer.parseInt(groups[1]) + "."
+                + Integer.parseInt(groups[2]) + "."
+                + Integer.parseInt(groups[3]) + ":"
+                + Integer.parseInt(groups[4]);
+    }
+
+    private void markUdpField(String value) {
+        boolean valid = isCompleteUdpMask(value);
+        if (valid) {
+            udpField.getStyleClass().remove("invalid");
+        } else if (!udpField.getStyleClass().contains("invalid")) {
+            udpField.getStyleClass().add("invalid");
+        }
+    }
+
     private void showLinkFields() {
         boolean udp = "UDP".equals(linkTypeBox.getValue());
         portBox.setVisible(!udp);
@@ -707,11 +950,12 @@ public class Main extends Application {
             String connectionIdentifier;
             if ("UDP".equals(linkTypeBox.getValue())) {
                 handler = new UdpConnectionHandler();
-                connectionIdentifier = udpField.getText() == null ? "" : udpField.getText().trim();
-                if (!connectionIdentifier.contains(":")) {
+                connectionIdentifier = udpAddressText(udpField.getText());
+                if (connectionIdentifier.isEmpty()) {
                     setLinkState(false, "");
                     linkChip.setText("NEED IP:PORT");
-                    System.out.println("UDP address is missing a port.");
+                    markUdpField(udpField.getText());
+                    System.out.println("UDP address must look like ___.___.___.___:_____.");
                     return;
                 }
                 System.out.println("UdpConnectionHandler set.");

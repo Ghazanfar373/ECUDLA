@@ -199,6 +199,20 @@
     -fx-prompt-text-fill: -ecu-muted;
 }
 
+.link-mask {
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 14px;
+}
+
+.link-mask:focused {
+    -fx-border-color: -ecu-accent;
+}
+
+.link-field.invalid,
+.link-field.invalid:focused {
+    -fx-border-color: -ecu-danger;
+}
+
 .combo-box > .list-cell {
     -fx-text-fill: -ecu-text;
     -fx-background-color: transparent;
