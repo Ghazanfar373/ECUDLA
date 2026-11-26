@@ -107,12 +107,10 @@ public class SerialConnectionHandler implements ConnectionHandler {
     }
 
     public String[] getComPorts() {
-        System.out.println("SerialConnectionHandler: getComPorts() called."); // Added logging
         SerialPort[] serialPorts = SerialPort.getCommPorts();
         String[] ports = new String[serialPorts.length];
         for (int i = 0; i < serialPorts.length; i++) {
             ports[i] = serialPorts[i].getSystemPortName();
-            System.out.println("SerialConnectionHandler: Found COM port: " + ports[i]); // Added logging
         }
         return ports;
     }

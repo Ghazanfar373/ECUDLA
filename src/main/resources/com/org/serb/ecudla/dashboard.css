@@ -85,6 +85,12 @@
     -fx-font-weight: bold;
 }
 
+.brand-version {
+    -fx-text-fill: -ecu-accent;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
 .brand-sub {
     -fx-text-fill: -ecu-muted;
     -fx-font-size: 11px;
@@ -161,12 +167,61 @@
     -fx-font-size: 12px;
 }
 
-.toolbar-button:hover {
-    -fx-border-color: -ecu-accent;
+.toolbar-button.icon-button {
+    -fx-padding: 6;
+    -fx-min-width: 32px;
+    -fx-min-height: 32px;
+    -fx-max-width: 32px;
+    -fx-max-height: 32px;
+}
+
+.about-icon,
+.connect-icon,
+.disconnect-icon {
+    -fx-min-width: 18px;
+    -fx-min-height: 18px;
+    -fx-pref-width: 18px;
+    -fx-pref-height: 18px;
+    -fx-max-width: 18px;
+    -fx-max-height: 18px;
+}
+
+.about-icon {
+    -fx-background-color: -ecu-text;
+    -fx-shape: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z";
+}
+
+.connect-icon {
+    -fx-background-color: -ecu-text;
+    -fx-shape: "M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z";
+}
+
+.disconnect-icon {
+    -fx-background-color: -ecu-danger;
+    -fx-shape: "M17 7h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1 0 1.43-.98 2.63-2.31 2.98l1.46 1.46C20.88 15.61 22 13.95 22 12c0-2.76-2.24-5-5-5zm-1 4h-2.19l2 2H16zM2 4.27l3.11 3.11C3.29 8.12 2 9.91 2 12c0 2.76 2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1 0-1.59 1.21-2.9 2.76-3.07L8.73 11H8v2h2.73L13 15.27V17h1.73l4.01 4L20 19.74 3.27 3 2 4.27z";
+}
+
+.toolbar-button:pressed .about-icon,
+.toolbar-button:pressed .connect-icon,
+.toolbar-button.toolbar-stop:hover .disconnect-icon,
+.toolbar-button.toolbar-stop:pressed .disconnect-icon {
+    -fx-background-color: -ecu-bg;
 }
 
 .toolbar-button:pressed {
     -fx-background-color: -ecu-accent;
+    -fx-text-fill: -ecu-bg;
+}
+
+.toolbar-button.toolbar-stop {
+    -fx-border-color: -ecu-danger;
+    -fx-text-fill: -ecu-danger;
+}
+
+.toolbar-button.toolbar-stop:hover,
+.toolbar-button.toolbar-stop:pressed {
+    -fx-background-color: -ecu-danger;
+    -fx-border-color: -ecu-danger;
     -fx-text-fill: -ecu-bg;
 }
 

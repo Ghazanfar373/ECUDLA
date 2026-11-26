@@ -4,6 +4,7 @@ module com.org.serb.ecudla {
 	requires eu.hansolo.medusa;
 	requires eu.hansolo.tilesfx;
 	requires java.prefs;
+	requires java.desktop;
 	requires com.fazecast.jSerialComm;
 	requires java.sql;
 	requires com.jfoenix;

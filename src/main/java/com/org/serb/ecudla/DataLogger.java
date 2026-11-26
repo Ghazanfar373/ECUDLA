@@ -11,7 +11,6 @@ public class DataLogger {
     private FileWriter realTimeWriter;// =new FileWriter("DataLog-"+formattedDate+".txt");
     private boolean mRunning = false;
     private boolean realRunning=false;
-    private String loggFolderName = "SERB_ECU_LOGS";
     private Date date;
     public DataLogger() {
         //init stuff
@@ -19,12 +18,10 @@ public class DataLogger {
             date = new Date();
             Timestamp ts = new Timestamp(date.getTime());
             String formattedDate = new SimpleDateFormat("yyyy-MM-dd-HHmm").format(ts);
-            String myDocumentPath = System.getProperty("user.home") + "\\Documents\\";
-            isFolderCreated(myDocumentPath);
+            File folder = logFolder();
             System.out.println("DataLogging Started... ");
-            myDocumentPath = myDocumentPath + loggFolderName;
-            System.out.println(myDocumentPath+"###########################");
-            realTimeWriter=new FileWriter(myDocumentPath+ "\\RealTime-" + formattedDate + ".csv");
+            System.out.println(folder.getAbsolutePath());
+            realTimeWriter = new FileWriter(new File(folder, "RealTime-" + formattedDate + ".csv"));
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -100,10 +97,10 @@ public synchronized void stopRealTime(){
         }
     }
 
-    void isFolderCreated(String path){
-
-        File dir = new File(path+loggFolderName);
-        dir.mkdir();
+    public static File logFolder() {
+        File dir = new File(System.getProperty("user.home") + "\\Documents\\SERB_ECU_LOGS");
+        dir.mkdirs();
+        return dir;
     }
 //   public void updateLogger(int payloadNumber) {
 //        try {

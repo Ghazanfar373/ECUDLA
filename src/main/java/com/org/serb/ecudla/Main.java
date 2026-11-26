@@ -7,20 +7,20 @@ import eu.hansolo.tilesfx.Tile;
 import eu.hansolo.tilesfx.TileBuilder;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Stop;
 import javafx.stage.Stage;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -44,11 +44,10 @@ public class Main extends Application {
     };
 
     BorderPane borderPane;
-    Button btnPlane;
     Slider slider;
     private AnimationTimer timer;
     private long lastTimerCall;
-    Stage stageSetting, stageAbout;
+    Stage stageAbout;
 
     private Gauge gaugeRPM;
     private Gauge gaugeTPS;
@@ -68,6 +67,7 @@ public class Main extends Application {
     private Label fieldBaro;
     private Label fieldTime;
     private Label linkChip;
+    private Button btnDisconnect;
     private ComboBox<String> linkTypeBox;
     private ComboBox<String> portBox;
     private TextField udpField;
@@ -81,34 +81,25 @@ public class Main extends Application {
         URL css = getClass().getResource("/com/org/serb/ecudla/dashboard.css");
         dashboardCss = css == null ? null : css.toExternalForm();
         activeTheme = DashboardTheme.byId(uiPrefs.get(THEME_PREF, DashboardTheme.NIGHT.id));
+        Params.getInstance().setPlaneCaliFactor();
 
         borderPane = new BorderPane();
         borderPane.getStyleClass().add(activeTheme.styleClass);
 
         Image imageFlag = fileImage("logo-black_200.png");
-        btnPlane = toolbarButton("Plane");
-        Button btnConnect = toolbarButton("Connect");
+        Button btnConnect = iconButton("Connect", "connect-icon");
+        btnDisconnect = iconButton("Disconnect", "disconnect-icon");
+        btnDisconnect.getStyleClass().add("toolbar-stop");
+        btnDisconnect.setDisable(true);
         Button btnLogdata = toolbarButton("Reset Max");
-        Button btnSettings = toolbarButton("Settings");
-        Button btnhelp = toolbarButton("About");
+        Button btnLogs = toolbarButton("Logs");
+        Button btnhelp = iconButton("About", "about-icon");
 
         btnConnect.setOnAction(event -> connectFromBar());
-        btnPlane.setOnAction(event -> selectionBox());
+        btnDisconnect.setOnAction(event -> disconnectFromBar());
         btnhelp.setOnAction(event -> showAbout());
-        btnSettings.setOnAction(event -> openSettings());
-        btnLogdata.setOnAction(event -> {
-            System.out.println("\007");
-            byte[] buffer = {(byte) 0x90, (byte) 0x9f, (byte) 0xfa, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x24, 0x46, 0x48, 0x46, 0x00, 0x00, 0x68, 0x00, (byte) 0xc4, (byte) 0xbb};
-            byte[] beffer = {3, 9, 12, 13, 8};
-            int fromAir = (buffer[35] << 8 & 0xff00) + (buffer[36] & 0xff);
-            System.out.println(calcCRC(beffer) + "From Air " + fromAir);
-            Params.getInstance().setMaxECT(1);
-            Params.getInstance().setMaxFuelCons(1);
-            Params.getInstance().setMaxIAT(1);
-            Params.getInstance().setMaxPres(1);
-            Params.getInstance().setMaxRPM(1);
-            Params.getInstance().setMaxTPS(1);
-        });
+        btnLogdata.setOnAction(event -> resetPeaks());
+        btnLogs.setOnAction(event -> openLogFolder());
 
         linkChip = new Label("OFFLINE");
         linkChip.getStyleClass().addAll("status-chip", "offline");
@@ -131,25 +122,28 @@ public class Main extends Application {
 
         Label brandTitle = new Label("SERB ECU");
         brandTitle.getStyleClass().add("brand-title");
+        Label brandVersion = new Label("5.1.3");
+        brandVersion.getStyleClass().add("brand-version");
         Label brandSub = new Label("DLA 180");
         brandSub.getStyleClass().add("brand-sub");
-        VBox brandText = new VBox(0, brandTitle, brandSub);
+        HBox brandName = new HBox(8, brandTitle, brandVersion);
+        brandName.setAlignment(Pos.CENTER_LEFT);
+        VBox brandText = new VBox(0, brandName, brandSub);
         HBox brand = new HBox(10, logoBadge, brandText);
         brand.setAlignment(Pos.CENTER_LEFT);
 
-        Label themeCaption = new Label("Theme");
-        themeCaption.getStyleClass().add("theme-label");
-        HBox themePicker = new HBox(6, themeCaption, themeBox);
-        themePicker.setAlignment(Pos.CENTER_LEFT);
-
         linkTypeBox = new ComboBox<>();
-        linkTypeBox.getItems().addAll("Serial", "UDP");
+        linkTypeBox.getItems().addAll("Serial", "UDP", "UDPCI");
         linkTypeBox.setValue("Serial");
         portBox = new ComboBox<>();
         portBox.setPrefWidth(110);
-        portBox.setOnShowing(event -> refreshPorts());
+        portBox.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (!portBox.isShowing()) {
+                refreshPorts();
+            }
+        });
         udpField = new TextField();
-        udpField.setPrefWidth(206);
+        udpField.setPrefColumnCount(UDP_MASK.length());
         udpField.getStyleClass().addAll("link-field", "link-mask");
         udpField.setTextFormatter(new TextFormatter<>(this::maskUdpChange));
         udpField.textProperty().addListener((obs, old, value) -> markUdpField(value));
@@ -159,17 +153,15 @@ public class Main extends Application {
         refreshPorts();
         showLinkFields();
 
-        Label linkCaption = new Label("Link");
-        linkCaption.getStyleClass().add("theme-label");
-        HBox linkBar = new HBox(8, linkCaption, linkTypeBox, portBox, udpField, btnConnect);
+        HBox linkBar = new HBox(8, linkTypeBox, portBox, udpField, btnConnect, btnDisconnect);
         linkBar.setAlignment(Pos.CENTER_LEFT);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox actions = new HBox(8, btnPlane, btnLogdata, btnSettings, btnhelp);
+        HBox actions = new HBox(8, btnLogs, btnLogdata, btnhelp);
         actions.setAlignment(Pos.CENTER_RIGHT);
 
-        HBox header = new HBox(12, brand, linkBar, spacer, linkChip, themePicker, actions);
+        HBox header = new HBox(12, brand, linkBar, spacer, linkChip, themeBox, actions);
         header.getStyleClass().add("top-bar");
         header.setAlignment(Pos.CENTER_LEFT);
 
@@ -393,8 +385,12 @@ public class Main extends Application {
                     gaugeRPM.setValue(Params.getInstance().getRPM());
                     gaugeTPS.setValue(Params.getInstance().getTPS());
                     gaugeTempAirIntake.setValue(Params.getInstance().getIAT());
-                    gaugeTempCylinder1.setValue(Params.getInstance().getTempClndr1());
-                    gaugeTempCylinder2.setValue(Params.getInstance().getTempClndr2());
+                    double temp1 = Params.getInstance().getTempClndr1();
+                    double temp2 = Params.getInstance().getTempClndr2();
+                    gaugeTempCylinder1.setValue(temp1);
+                    gaugeTempCylinder2.setValue(temp2);
+                    paintCylinderTemp(gaugeTempCylinder1, temp1);
+                    paintCylinderTemp(gaugeTempCylinder2, temp2);
 
                     peakRpm.setText(formatReading(Params.getInstance().getMaxRPM()));
                     peakTemp1.setText(formatReading(Params.getInstance().getMaxTemp1()));
@@ -451,45 +447,12 @@ public class Main extends Application {
         }
     }
 
-    private void openSettings() {
-        try {
-            if (stageSetting != null && stageSetting.isShowing()) {
-                stageSetting.toFront();
-                return;
-            }
-            URL fxml = getClass().getResource("/com/org/serb/ecudla/settings.fxml");
-            if (fxml == null) {
-                showAlert(Alert.AlertType.ERROR, "Settings", "Settings layout was not found.");
-                return;
-            }
-            FXMLLoader loader = new FXMLLoader(fxml);
-            Parent root = loader.load();
-            root.getStyleClass().add(activeTheme.styleClass);
-            Scene scene = new Scene(root);
-            if (dashboardCss != null) {
-                scene.getStylesheets().add(dashboardCss);
-            }
-            stageSetting = new Stage();
-            stageSetting.setTitle("Settings");
-            stageSetting.setResizable(false);
-            stageSetting.getIcons().add(fileImage("baseline_settings_black_24dp.png"));
-            stageSetting.setScene(scene);
-            stageSetting.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Settings", "Could not open settings.");
-        }
-    }
-
     private void applyTheme(DashboardTheme theme) {
         activeTheme = theme;
         borderPane.getStyleClass().removeAll("theme-night", "theme-day", "theme-amber");
         borderPane.getStyleClass().add(theme.styleClass);
         if (stageAbout != null && stageAbout.getScene() != null) {
             restyle(stageAbout.getScene().getRoot(), theme);
-        }
-        if (stageSetting != null && stageSetting.getScene() != null) {
-            restyle(stageSetting.getScene().getRoot(), theme);
         }
         paintAnalog(gaugeRPM, theme);
         gaugeRPM.setNeedleColor(Color.web("#ff5a3c"));
@@ -498,8 +461,8 @@ public class Main extends Application {
         paintDigital(gaugeTempCylinder1, theme);
         paintDigital(gaugeTempCylinder2, theme);
         paintDigital(gaugeTempAirIntake, theme);
-        gaugeTempCylinder1.setBarColor(Color.web("#ff5a3c"));
-        gaugeTempCylinder2.setBarColor(Color.web("#ff8a3c"));
+        paintCylinderTemp(gaugeTempCylinder1, gaugeTempCylinder1.getValue());
+        paintCylinderTemp(gaugeTempCylinder2, gaugeTempCylinder2.getValue());
         gaugeTempAirIntake.setBarColor(theme.accent);
         fuelSpark.setBackgroundColor(theme.field);
         fuelSpark.setBorderColor(theme.line);
@@ -538,6 +501,10 @@ public class Main extends Application {
         gauge.setValueColor(theme.accent);
     }
 
+    private void paintCylinderTemp(Gauge gauge, double celsius) {
+        gauge.setBarColor(celsius > 50 ? Color.web("#ff2d2d") : Color.web("#ff8a1f"));
+    }
+
     private Gauge digitalGauge(String title, Color bar) {
         return GaugeBuilder.create()
                 .skinType(Gauge.SkinType.DIGITAL)
@@ -572,6 +539,24 @@ public class Main extends Application {
         return String.format("%.2f", value);
     }
 
+    private void resetPeaks() {
+        Params params = Params.getInstance();
+        params.setMaxRPM(0);
+        params.setMaxTemp1(0);
+        params.setMaxTemp2(0);
+        params.setMaxFuelCons(0);
+        params.setMaxECT(0);
+        params.setMaxIAT(0);
+        params.setMaxPres(0);
+        params.setMaxTPS(0);
+        if (peakRpm != null) {
+            peakRpm.setText(formatReading(0));
+            peakTemp1.setText(formatReading(0));
+            peakTemp2.setText(formatReading(0));
+            peakFuel.setText(formatReading(0));
+        }
+    }
+
     private VBox card(String title, Node... body) {
         Label heading = new Label(title.toUpperCase());
         heading.getStyleClass().add("section-title");
@@ -604,6 +589,34 @@ public class Main extends Application {
         return button;
     }
 
+    private void openLogFolder() {
+        File folder = DataLogger.logFolder();
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(folder);
+                return;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            new ProcessBuilder("explorer.exe", folder.getAbsolutePath()).start();
+        } catch (IOException e) {
+            showAlert(Alert.AlertType.ERROR, "Logs", "Could not open the log folder.");
+        }
+    }
+
+    private Button iconButton(String tip, String iconStyle) {
+        Button button = new Button();
+        button.getStyleClass().addAll("toolbar-button", "icon-button");
+        button.setTooltip(new Tooltip(tip));
+        Region icon = new Region();
+        icon.getStyleClass().add(iconStyle);
+        icon.setMouseTransparent(true);
+        button.setGraphic(icon);
+        return button;
+    }
+
     private Button commandButton(String text, String tone) {
         Button button = new Button(text);
         button.getStyleClass().addAll("cmd", tone);
@@ -615,6 +628,21 @@ public class Main extends Application {
         linkChip.setText(online ? "LIVE  " + detail : "OFFLINE");
         linkChip.getStyleClass().removeAll("online", "offline");
         linkChip.getStyleClass().add(online ? "online" : "offline");
+        if (btnDisconnect != null) {
+            btnDisconnect.setDisable(!online);
+        }
+    }
+
+    private void disconnectFromBar() {
+        System.out.println("Disconnect Button clicked.");
+        try {
+            ArdiunoPort.setRunning(false);
+            ArdiunoPort.getInstance().disconnectPort();
+        } catch (Exception e) {
+            System.err.println("Exception in disconnectFromBar: " + e.getMessage());
+            e.printStackTrace();
+        }
+        setLinkState(false, "");
     }
 
     private boolean confirmEngine(String title, String message, String confirmText, String tone) {
@@ -904,12 +932,12 @@ public class Main extends Application {
     }
 
     private void showLinkFields() {
-        boolean udp = "UDP".equals(linkTypeBox.getValue());
-        portBox.setVisible(!udp);
-        portBox.setManaged(!udp);
-        udpField.setVisible(udp);
-        udpField.setManaged(udp);
-        if (!udp) {
+        boolean network = "UDP".equals(linkTypeBox.getValue()) || "UDPCI".equals(linkTypeBox.getValue());
+        portBox.setVisible(!network);
+        portBox.setManaged(!network);
+        udpField.setVisible(network);
+        udpField.setManaged(network);
+        if (!network) {
             refreshPorts();
         }
     }
@@ -934,12 +962,7 @@ public class Main extends Application {
     private void connectFromBar() {
         System.out.println("Connect Button clicked.");
         try {
-            Params.getInstance().setMaxECT(1);
-            Params.getInstance().setMaxFuelCons(1);
-            Params.getInstance().setMaxIAT(1);
-            Params.getInstance().setMaxPres(1);
-            Params.getInstance().setMaxRPM(1);
-            Params.getInstance().setMaxTPS(1);
+            resetPeaks();
 
             ConnectionHandler previous = ArdiunoPort.getInstance().getConnectionHandler();
             if (previous != null && previous.isConnected()) {
@@ -948,8 +971,9 @@ public class Main extends Application {
 
             ConnectionHandler handler;
             String connectionIdentifier;
-            if ("UDP".equals(linkTypeBox.getValue())) {
-                handler = new UdpConnectionHandler();
+            String link = linkTypeBox.getValue();
+            if ("UDP".equals(link) || "UDPCI".equals(link)) {
+                handler = "UDPCI".equals(link) ? new UdpCiConnectionHandler() : new UdpConnectionHandler();
                 connectionIdentifier = udpAddressText(udpField.getText());
                 if (connectionIdentifier.isEmpty()) {
                     setLinkState(false, "");
@@ -958,7 +982,10 @@ public class Main extends Application {
                     System.out.println("UDP address must look like ___.___.___.___:_____.");
                     return;
                 }
-                System.out.println("UdpConnectionHandler set.");
+                System.out.println(handler.getClass().getSimpleName() + " set.");
+                if (UdpDummyEcu.isLoopback(connectionIdentifier)) {
+                    UdpDummyEcu.ensureStarted(connectionIdentifier);
+                }
             } else {
                 refreshPorts();
                 handler = new SerialConnectionHandler();
@@ -1014,33 +1041,6 @@ public class Main extends Application {
         alert.showAndWait();
     }
 
-    void selectionBox() {
-        try {
-            String[] array = {"SMD", "SML"};
-            ChoiceDialog<String> choiceDialog = new ChoiceDialog<>("SML", array);
-            paintDialog(choiceDialog);
-            Image iconimage = fileImage("baseline_security_black_24dp.png");
-            ((Stage) choiceDialog.getDialogPane().getScene().getWindow()).getIcons().add(iconimage);
-            choiceDialog.showingProperty().addListener((ov, b, b1) -> {
-                if (b1) {
-                    Node comboBox = choiceDialog.getDialogPane().lookup(".combo-box");
-                    if (comboBox != null) {
-                        comboBox.requestFocus();
-                    }
-                }
-            });
-
-            choiceDialog.showAndWait();
-            String planename = choiceDialog.getSelectedItem();
-            System.out.println(choiceDialog.getSelectedItem());
-            Params.getInstance().pref.put("plane", planename);
-            btnPlane.setText(planename);
-            Params.getInstance().setPlaneCaliFactor();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
     public void stop() throws Exception {
         timer.stop();
@@ -1070,27 +1070,16 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.setMinWidth(960);
         primaryStage.setMinHeight(700);
-        primaryStage.setWidth(1024);
+        primaryStage.setWidth(1060);
         primaryStage.setHeight(895);
-        primaryStage.setTitle("SERB ECU 4.5.0 (DLA 180)");
+        primaryStage.setTitle("SERB ECU 5.1.3 (DLA 180)");
         primaryStage.getIcons().add(fileImage("baseline_security_black_24dp.png"));
         primaryStage.show();
         primaryStage.setOnCloseRequest(event -> {
-            if (stageSetting != null && stageSetting.isShowing()) {
-                stageSetting.close();
-            }
             if (stageAbout != null && stageAbout.isShowing()) {
                 stageAbout.close();
             }
         });
         timer.start();
-    }
-
-    int calcCRC(byte[] buffer) {
-        int crc = 0;
-        for (int i = 0; i < 5; i++) {
-            crc = crc ^ buffer[i];
-        }
-        return crc;
     }
 }
